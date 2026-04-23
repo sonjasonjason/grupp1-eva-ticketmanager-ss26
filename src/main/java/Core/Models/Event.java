@@ -14,7 +14,6 @@ public class Event {
     private String location;
     private LocalDateTime time;
     private AtomicInteger ticketsAvailable;
-    private final List<UUID> ticketsSold = new ArrayList<>();
 
     public Event(
         UUID id,
@@ -46,17 +45,8 @@ public class Event {
         return time;
     }
 
-    public List<UUID> getTicketsSold() {
-        return this.ticketsSold;
-    }
-
     public AtomicInteger getTicketsAvailable() {
         return ticketsAvailable;
-    }
-
-    public void ticketDeleted(UUID ticketId) {
-        this.ticketsSold.remove(ticketId);
-        this.ticketsAvailable.addAndGet(1);
     }
 
     public void setName(String name) {
@@ -75,17 +65,13 @@ public class Event {
         this.ticketsAvailable = new AtomicInteger(ticketsAvailable);
     }
 
-    public void addTicketToTicketsSold(UUID ticketId){
-        this.ticketsSold.add(ticketId);
-    }
-
     public boolean hasAvailableTickets() {
         return ticketsAvailable.get() > 0;
     }
 
     @Override
     public int hashCode(){
-        return Objects.hash(id, name, location, time, ticketsAvailable, ticketsSold);
+        return Objects.hash(id, name, location, time, ticketsAvailable);
     }
 
     @Override
@@ -97,8 +83,7 @@ public class Event {
                 eventToCompare.getName().equals(this.name) &&
                 eventToCompare.getLocation().equals(this.location) &&
                 eventToCompare.getTime().equals(this.time) &&
-                (eventToCompare.getTicketsAvailable().get() == this.ticketsAvailable.get()) &&
-                eventToCompare.getTicketsSold().equals(this.ticketsSold);
+                (eventToCompare.getTicketsAvailable().get() == this.ticketsAvailable.get());
     }
 
 }

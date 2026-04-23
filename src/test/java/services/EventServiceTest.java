@@ -9,7 +9,6 @@ import java.util.UUID;
 import Core.Models.exceptions.EventException;
 import Core.Models.Event;
 import Core.Services.EventService;
-import Core.Services.TicketService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -22,7 +21,7 @@ class EventServiceTest {
 
     @BeforeEach
     void setUp() {
-        this.eventService = new EventService(new TicketService());
+        this.eventService = new EventService();
     }
 
     @Nested

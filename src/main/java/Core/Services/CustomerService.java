@@ -1,112 +1,72 @@
 package Core.Services;
 
-import Core.Models.exceptions.CustomerException;
-import Core.Interfaces.CustomerServiceInterface;
-import java.time.LocalDate;
-import java.util.*;
 import Core.Models.Customer;
-import Core.Models.Ticket;
+import Core.Models.exceptions.CustomerException;
 
-public class CustomerService implements CustomerServiceInterface {
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
-    private final Map<UUID, Customer> customersById = new HashMap<>();
-    private final TicketService ticketService;
+public class CustomerService {
 
-    public CustomerService(TicketService ticketService) {
-        this.ticketService = ticketService;
+    private List<Customer> customers = new ArrayList<>();
+
+    public Customer createCustomer(String username, String email, LocalDate dateOfBirth) {
+
+
+        Customer newCustomer = new Customer(UUID.randomUUID(), username, email, dateOfBirth);
+
+        validateCustomer(newCustomer);
+
+        customers.add(newCustomer);
+
+        return new Customer(newCustomer.getId(), username, email, dateOfBirth);
     }
 
-    public Customer createCustomer(
-        String username,
-        String email,
-        LocalDate dateOfBirth
-    ) throws IllegalArgumentException {
-        UUID id = UUID.randomUUID();
-        Customer customer = new Customer(id, username, email, dateOfBirth);
-        saveCustomer(customer);
+    private void validateCustomer(Customer customer) {
 
-        return customer;
-    }
+        if (customer.getDateOfBirth().isAfter(LocalDate.now().minusYears(18))) {
 
-    public Customer getCustomerById(UUID id) throws CustomerException {
-        try {
-            if (!customersById.containsKey(id)) {
-                throw CustomerException.customerDoesNotExist();
-            }
-        } catch (NullPointerException e){
-            throw CustomerException.customerDoesNotExist();
-        }
-        return clone(customersById.get(id));
-    }
-
-
-    public void updateCustomer(Customer customer) throws CustomerException {
-        validateUpdatedCustomer(customer);
-        saveCustomer(customer);
-    }
-
-    public void addTicketToCustomer(Ticket ticket){
-        Customer customer = getCustomerById(ticket.getCustomerId());
-        customer.getTicketsBought().add(ticket.getId());
-        customersById.put(customer.getId(), customer);
-    }
-
-    public void removeTicketFromCustomer(Ticket ticket){
-        Customer customer = getCustomerById(ticket.getCustomerId());
-        customer.ticketDeleted(ticket.getId());
-        customersById.put(customer.getId(), customer);
-    }
-
-    public void deleteCustomer(UUID id) throws IllegalArgumentException {
-        Customer customer = customersById.remove(id);
-        if (customer != null) {
-            List<UUID> ticketIds = new ArrayList<>(customer.getTicketsBought());
-            ticketIds.forEach(ticketService::deleteTicket);
-        }
-    }
-
-    public List<Customer> getAllCustomers() {
-        return new ArrayList<>(customersById.values());
-    }
-
-    public void deleteAllCustomers() {
-        customersById.clear();
-        ticketService.deleteAllTickets();
-    }
-
-    private void validateCustomer(Customer customer){
-        if (LocalDate.now().minusYears(18).isBefore(customer.getDateOfBirth())) {
-            throw CustomerException.customerUnder18();
+            throw CustomerException.underAgeCustomer();
         }
 
-        if (
-            !customer.getEmail().contains("@") ||
-            customer.getEmail().indexOf("@") !=
-            customer.getEmail().lastIndexOf("@") ||
-            !(customer.getEmail().lastIndexOf(".") >
-            customer.getEmail().indexOf("@"))
-        ) {
+        if (!customer.getEmail().matches("^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$")) {
             throw CustomerException.invalidEmail();
         }
     }
 
-    private void validateUpdatedCustomer(Customer updatedCustomer) throws CustomerException {
-        getCustomerById(updatedCustomer.getId());
+    public Customer getCustomerById(UUID id) {
+
+        var customerOpt = customers.stream().filter(customer -> customer.getId().equals(id)).findFirst();
+
+        if  (customerOpt.isEmpty()) {
+            throw CustomerException.customerDoesNotExist();
+        }
+
+        return customerOpt.get();
     }
 
-    private void saveCustomer(Customer customer) throws CustomerException{
+    public void updateCustomer(Customer customer) {
+
+        var updateCustomer = getCustomerById(customer.getId());
+
         validateCustomer(customer);
-        customersById.put(customer.getId(), clone(customer));
+
+        updateCustomer.setUsername(customer.getUsername());
+        updateCustomer.setEmail(customer.getEmail());
+        updateCustomer.setDateOfBirth(customer.getDateOfBirth());
     }
 
-    private Customer clone(Customer customer){
-        Customer customerClone = new Customer(
-                customer.getId(),
-                customer.getUsername(),
-                customer.getEmail(),
-                customer.getDateOfBirth()
-        );
-        customerClone.getTicketsBought().addAll(customer.getTicketsBought());
-        return customerClone;
+    public void deleteCustomer(UUID id) {
+        customers.removeIf(customer -> customer.getId().equals(id));
+    }
+
+    public List<Customer> getAllCustomers() {
+        return customers;
+    }
+
+    public void deleteAllCustomers() {
+        customers.clear();
     }
 }
