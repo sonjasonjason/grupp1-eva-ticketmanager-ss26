@@ -2,6 +2,7 @@ package Core.Clients;
 
 import Core.Clients.CommandHandler.ConsoleClientCustomerCommandHandler;
 import Core.Clients.CommandHandler.ConsoleClientEventCommandHandler;
+import Core.Clients.CommandHandler.ConsoleClientTicketCommandHandler;
 import Core.Interfaces.TicketShopInterface;
 
 import java.util.Scanner;
@@ -12,6 +13,7 @@ public class ConsoleClientLocal {
     private final Scanner scanner;
 
     private final ConsoleClientEventCommandHandler eventCommandHandler;
+    private final ConsoleClientTicketCommandHandler ticketCommandHandler;
     private final ConsoleClientCustomerCommandHandler customerCommandHandler;
 
     public ConsoleClientLocal() {
@@ -20,6 +22,7 @@ public class ConsoleClientLocal {
 
         this.customerCommandHandler = new ConsoleClientCustomerCommandHandler(shop);
         this.eventCommandHandler = new ConsoleClientEventCommandHandler(shop);
+        this.ticketCommandHandler = new ConsoleClientTicketCommandHandler(shop);
     }
 
     public void start() {
@@ -57,6 +60,10 @@ public class ConsoleClientLocal {
                 customerCommandHandler.handleCustomerCommands();
                 yield false;
             }
+            case "tickets", "t" -> {
+                ticketCommandHandler.handleTicketCommands();
+                yield false;
+            }
             case "exit", "quit", "q" -> {
                 System.out.println("Thank you for using the Ticket-shop!");
                 yield true;
@@ -76,6 +83,7 @@ public class ConsoleClientLocal {
         System.out.println("Available commands:");
         System.out.println("  events, e     - Enter event management mode");
         System.out.println("  customers, c  - Enter customer management mode");
+        System.out.println("  tickets, t    - Enter ticket management mode");
         System.out.println("  help          - Show this help message");
         System.out.println("  exit, quit, q - Exit the application");
     }

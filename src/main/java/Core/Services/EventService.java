@@ -9,10 +9,16 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import Core.Models.Event;
+import Core.Models.Ticket;
 
 public class EventService implements EventServiceInterface {
 
     private final Map<UUID, Event> eventsById = new ConcurrentHashMap<>();
+    private final TicketService ticketService;
+
+    public EventService(TicketService ticketService) {
+        this.ticketService = ticketService;
+    }
 
     public Event createEvent(
         String name,
@@ -31,6 +37,19 @@ public class EventService implements EventServiceInterface {
 
         saveEvent(event);
         return event;
+    }
+
+    public void ticketSoldForEvent(Ticket ticket) {
+        Event event = getEventById(ticket.getEventId());
+        event.getTicketsAvailable().decrementAndGet();
+        event.addTicketToTicketsSold(ticket.getId());
+        eventsById.put(event.getId(), event);
+    }
+
+    public void deleteTicketSoldForEvent(Ticket ticket){
+        Event event = getEventById(ticket.getEventId());
+        event.ticketDeleted(ticket.getId());
+        eventsById.put(event.getId(), event);
     }
 
     @Override
@@ -65,7 +84,11 @@ public class EventService implements EventServiceInterface {
 
     @Override
     public void deleteEvent(UUID id) {
-        eventsById.remove(id);
+        Event deletedEvent = eventsById.remove(id);
+        if (deletedEvent != null) {
+            List<UUID> ticketIds = new ArrayList<>(deletedEvent.getTicketsSold());
+            ticketIds.forEach(ticketService::deleteTicket);
+        }
     }
 
     @Override
@@ -76,6 +99,7 @@ public class EventService implements EventServiceInterface {
     @Override
     public void deleteAllEvents() {
         eventsById.clear();
+        ticketService.deleteAllTickets();
     }
 
     private void saveEvent(Event event) throws EventException{
@@ -97,6 +121,7 @@ public class EventService implements EventServiceInterface {
                 event.getTime(),
                 event.getTicketsAvailable().get()
         );
+        clonedEvent.getTicketsSold().addAll(event.getTicketsSold());
         return clonedEvent;
     }
 }

@@ -9,6 +9,7 @@ import java.util.UUID;
 import Core.Models.exceptions.CustomerException;
 import Core.Models.Customer;
 import Core.Services.CustomerService;
+import Core.Services.TicketService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -21,7 +22,7 @@ class CustomerServiceTest {
 
     @BeforeEach
     void setUp() {
-        customerService = new CustomerService();
+        customerService = new CustomerService(new TicketService());
     }
 
     @Nested

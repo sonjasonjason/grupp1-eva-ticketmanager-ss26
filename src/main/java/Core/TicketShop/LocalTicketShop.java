@@ -1,5 +1,6 @@
 package Core.TicketShop;
 
+import Core.Models.exceptions.TicketException;
 import Core.Interfaces.TicketShopInterface;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -7,17 +8,24 @@ import java.util.List;
 import java.util.UUID;
 import Core.Models.Customer;
 import Core.Models.Event;
+import Core.Models.Ticket;
 import Core.Services.CustomerService;
 import Core.Services.EventService;
+import Core.Services.TicketService;
 
 public class LocalTicketShop implements TicketShopInterface {
 
     private final EventService eventService;
     private final CustomerService customerService;
+    private final TicketService ticketService;
 
     public LocalTicketShop() {
-        this.customerService = new CustomerService();
-        this.eventService = new EventService();
+        this.ticketService = new TicketService();
+        this.customerService = new CustomerService(ticketService);
+        this.eventService = new EventService(ticketService);
+        ticketService.setCustomerService(customerService);
+        ticketService.setEventService(eventService);
+
     }
 
     // Event operations
@@ -91,4 +99,35 @@ public class LocalTicketShop implements TicketShopInterface {
         customerService.deleteAllCustomers();
     }
 
+    // Ticket Operations
+    @Override
+    public Ticket createTicket(UUID customerId, UUID eventId)
+        throws TicketException {
+        return ticketService.createTicket(customerId, eventId);
+    }
+
+    @Override
+    public List<Ticket> getAllTickets() {
+        return ticketService.getAllTickets();
+    }
+
+    @Override
+    public Ticket getTicketById(UUID id) throws TicketException {
+        return ticketService.getTicketById(id);
+    }
+
+    @Override
+    public void deleteTicket(UUID id) {
+        ticketService.deleteTicket(id);
+    }
+
+    @Override
+    public void deleteAllTickets() {
+        ticketService.deleteAllTickets();
+    }
+
+    @Override
+    public boolean verifyTicket(UUID id) {
+        return ticketService.verifyTicket(id);
+    }
 }

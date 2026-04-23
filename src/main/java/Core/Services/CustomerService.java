@@ -5,55 +5,108 @@ import Core.Interfaces.CustomerServiceInterface;
 import java.time.LocalDate;
 import java.util.*;
 import Core.Models.Customer;
+import Core.Models.Ticket;
 
 public class CustomerService implements CustomerServiceInterface {
 
     private final Map<UUID, Customer> customersById = new HashMap<>();
+    private final TicketService ticketService;
+
+    public CustomerService(TicketService ticketService) {
+        this.ticketService = ticketService;
+    }
 
     public Customer createCustomer(
         String username,
         String email,
         LocalDate dateOfBirth
     ) throws IllegalArgumentException {
+        UUID id = UUID.randomUUID();
+        Customer customer = new Customer(id, username, email, dateOfBirth);
+        saveCustomer(customer);
 
-        //TODO
-
-        return null;
+        return customer;
     }
 
     public Customer getCustomerById(UUID id) throws CustomerException {
-
-        //TODO
-
-        return null;
+        try {
+            if (!customersById.containsKey(id)) {
+                throw CustomerException.customerDoesNotExist();
+            }
+        } catch (NullPointerException e){
+            throw CustomerException.customerDoesNotExist();
+        }
+        return clone(customersById.get(id));
     }
 
 
     public void updateCustomer(Customer customer) throws CustomerException {
-
-        //TODO
-
+        validateUpdatedCustomer(customer);
+        saveCustomer(customer);
     }
 
+    public void addTicketToCustomer(Ticket ticket){
+        Customer customer = getCustomerById(ticket.getCustomerId());
+        customer.getTicketsBought().add(ticket.getId());
+        customersById.put(customer.getId(), customer);
+    }
 
+    public void removeTicketFromCustomer(Ticket ticket){
+        Customer customer = getCustomerById(ticket.getCustomerId());
+        customer.ticketDeleted(ticket.getId());
+        customersById.put(customer.getId(), customer);
+    }
 
     public void deleteCustomer(UUID id) throws IllegalArgumentException {
-
-        //TODO
-
+        Customer customer = customersById.remove(id);
+        if (customer != null) {
+            List<UUID> ticketIds = new ArrayList<>(customer.getTicketsBought());
+            ticketIds.forEach(ticketService::deleteTicket);
+        }
     }
 
     public List<Customer> getAllCustomers() {
-
-        //TODO
-
-        return null;
+        return new ArrayList<>(customersById.values());
     }
 
     public void deleteAllCustomers() {
-
-        //TODO
-
+        customersById.clear();
+        ticketService.deleteAllTickets();
     }
 
+    private void validateCustomer(Customer customer){
+        if (LocalDate.now().minusYears(18).isBefore(customer.getDateOfBirth())) {
+            throw CustomerException.customerUnder18();
+        }
+
+        if (
+            !customer.getEmail().contains("@") ||
+            customer.getEmail().indexOf("@") !=
+            customer.getEmail().lastIndexOf("@") ||
+            !(customer.getEmail().lastIndexOf(".") >
+            customer.getEmail().indexOf("@"))
+        ) {
+            throw CustomerException.invalidEmail();
+        }
+    }
+
+    private void validateUpdatedCustomer(Customer updatedCustomer) throws CustomerException {
+        getCustomerById(updatedCustomer.getId());
+    }
+
+    private void saveCustomer(Customer customer) throws CustomerException{
+        validateCustomer(customer);
+        customersById.put(customer.getId(), clone(customer));
+    }
+
+    private Customer clone(Customer customer){
+        Customer customerClone = new Customer(
+                customer.getId(),
+                customer.getUsername(),
+                customer.getEmail(),
+                customer.getDateOfBirth()
+        );
+        customerClone.getTicketsBought().addAll(customer.getTicketsBought());
+        return customerClone;
+    }
 }

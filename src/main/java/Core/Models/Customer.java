@@ -1,6 +1,5 @@
 package Core.Models;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +12,7 @@ public class Customer {
     private String username;
     private String email;
     private LocalDate dateOfBirth;
+    private final List<UUID> ticketsBought = new ArrayList<>();
 
     public Customer(
         UUID id,
@@ -42,6 +42,10 @@ public class Customer {
         return dateOfBirth;
     }
 
+    public List<UUID> getTicketsBought() {
+        return this.ticketsBought;
+    }
+
     public void setUsername(String username) {
         this.username = username;
     }
@@ -54,10 +58,14 @@ public class Customer {
         this.dateOfBirth = dateOfBirth;
     }
 
+    public void ticketDeleted(UUID ticketId) {
+        this.ticketsBought.remove(ticketId);
+    }
+
 
     @Override
     public int hashCode(){
-        return Objects.hash(id, username, email, dateOfBirth);
+        return Objects.hash(id, username, email, dateOfBirth, ticketsBought);
     }
 
     @Override
@@ -68,6 +76,7 @@ public class Customer {
         return customerToCompare.getId().equals(this.getId()) &&
                 customerToCompare.getUsername().equals(this.getUsername()) &&
                 customerToCompare.getEmail().equals(this.getEmail()) &&
-                customerToCompare.getDateOfBirth().equals(this.getDateOfBirth());
+                customerToCompare.getDateOfBirth().equals(this.getDateOfBirth()) &&
+                customerToCompare.getTicketsBought().equals(this.getTicketsBought());
     }
 }
