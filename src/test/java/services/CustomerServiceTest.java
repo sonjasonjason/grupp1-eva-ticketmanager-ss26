@@ -9,6 +9,7 @@ import java.util.UUID;
 import Core.Models.exceptions.CustomerException;
 import Core.Models.Customer;
 import Core.Services.CustomerService;
+import Core.Services.TicketService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -21,7 +22,7 @@ class CustomerServiceTest {
 
     @BeforeEach
     void setUp() {
-        customerService = new CustomerService();
+        customerService = new CustomerService(new TicketService());
     }
 
     @Nested
@@ -38,9 +39,9 @@ class CustomerServiceTest {
 
             // Act
             Customer customer = customerService.createCustomer(
-                    username,
-                    email,
-                    dateOfBirth
+                username,
+                email,
+                dateOfBirth
             );
 
             // Assert
@@ -61,9 +62,9 @@ class CustomerServiceTest {
 
             // Act & Assert
             CustomerException exception = assertThrows(
-                    CustomerException.class,
-                    () ->
-                            customerService.createCustomer(username, email, dateOfBirth)
+                CustomerException.class,
+                () ->
+                    customerService.createCustomer(username, email, dateOfBirth)
             );
             assertEquals("User has to be 18 years old", exception.getMessage());
         }
@@ -78,13 +79,13 @@ class CustomerServiceTest {
 
             // Act & Assert
             CustomerException exception = assertThrows(
-                    CustomerException.class,
-                    () ->
-                            customerService.createCustomer(
-                                    username,
-                                    invalidEmail,
-                                    dateOfBirth
-                            )
+                CustomerException.class,
+                () ->
+                    customerService.createCustomer(
+                        username,
+                        invalidEmail,
+                        dateOfBirth
+                    )
             );
             assertEquals("Invalid email", exception.getMessage());
         }
@@ -99,13 +100,13 @@ class CustomerServiceTest {
 
             // Act & Assert
             CustomerException exception = assertThrows(
-                    CustomerException.class,
-                    () ->
-                            customerService.createCustomer(
-                                    username,
-                                    invalidEmail,
-                                    dateOfBirth
-                            )
+                CustomerException.class,
+                () ->
+                    customerService.createCustomer(
+                        username,
+                        invalidEmail,
+                        dateOfBirth
+                    )
             );
             assertEquals("Invalid email", exception.getMessage());
         }
@@ -120,9 +121,9 @@ class CustomerServiceTest {
 
             // Act
             Customer customer = customerService.createCustomer(
-                    username,
-                    email,
-                    dateOfBirth
+                username,
+                email,
+                dateOfBirth
             );
 
             // Assert
@@ -231,8 +232,8 @@ class CustomerServiceTest {
 
             // Act + Assert
             CustomerException exception = assertThrows(
-                    CustomerException.class,
-                    () -> customerService.updateCustomer(customer)
+                CustomerException.class,
+                () -> customerService.updateCustomer(customer)
             );
             assertEquals(CustomerException.customerDoesNotExist, exception.getMessage());
         }
@@ -247,14 +248,14 @@ class CustomerServiceTest {
         void shouldRetrieveCustomerById() {
             // Arrange
             Customer createdCustomer = customerService.createCustomer(
-                    "testuser",
-                    "test@example.com",
-                    LocalDate.now().minusYears(25)
+                "testuser",
+                "test@example.com",
+                LocalDate.now().minusYears(25)
             );
 
             // Act
             Customer retrievedCustomer = customerService.getCustomerById(
-                    createdCustomer.getId()
+                createdCustomer.getId()
             );
 
             // Assert
@@ -281,9 +282,9 @@ class CustomerServiceTest {
         void shouldUpdateExistingCustomer() {
             // Arrange
             Customer customer = customerService.createCustomer(
-                    "oldname",
-                    "old@example.com",
-                    LocalDate.now().minusYears(25)
+                "oldname",
+                "old@example.com",
+                LocalDate.now().minusYears(25)
             );
             customer.setUsername("newname");
             customer.setEmail("new@example.com");
@@ -291,7 +292,7 @@ class CustomerServiceTest {
             // Act
             customerService.updateCustomer(customer);
             Customer updatedCustomer = customerService.getCustomerById(
-                    customer.getId()
+                customer.getId()
             );
 
             // Assert
@@ -304,9 +305,9 @@ class CustomerServiceTest {
         void shouldDeleteCustomerById() {
             // Arrange
             Customer customer = customerService.createCustomer(
-                    "testuser",
-                    "test@example.com",
-                    LocalDate.now().minusYears(25)
+                "testuser",
+                "test@example.com",
+                LocalDate.now().minusYears(25)
             );
 
             // Act
@@ -321,14 +322,14 @@ class CustomerServiceTest {
         void shouldGetAllCustomers() {
             // Arrange
             customerService.createCustomer(
-                    "user1",
-                    "user1@example.com",
-                    LocalDate.now().minusYears(25)
+                "user1",
+                "user1@example.com",
+                LocalDate.now().minusYears(25)
             );
             customerService.createCustomer(
-                    "user2",
-                    "user2@example.com",
-                    LocalDate.now().minusYears(30)
+                "user2",
+                "user2@example.com",
+                LocalDate.now().minusYears(30)
             );
 
             // Act
@@ -343,14 +344,14 @@ class CustomerServiceTest {
         void shouldDeleteAllCustomers() {
             // Arrange
             customerService.createCustomer(
-                    "user1",
-                    "user1@example.com",
-                    LocalDate.now().minusYears(25)
+                "user1",
+                "user1@example.com",
+                LocalDate.now().minusYears(25)
             );
             customerService.createCustomer(
-                    "user2",
-                    "user2@example.com",
-                    LocalDate.now().minusYears(30)
+                "user2",
+                "user2@example.com",
+                LocalDate.now().minusYears(30)
             );
 
             // Act
